@@ -35,6 +35,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.vicin.MainActivity;
 import com.vicin.databinding.FragmentDashboardBinding;
+import com.vicin.utils.ImageUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,43 +59,12 @@ public class DashboardFragment extends Fragment {
     Bitmap bMap = null;
     Bitmap mutableBitmap = null;
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        //File file = new File(path, "DemoPicture.jpg");
-
-        //File storageDir = Context#getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                path      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-//        Date date = new Date();
-//        DateFormat df = new SimpleDateFormat("-mm-ss");
-//
-//        String newPicFile = df.format(date) + ".jpg";
-//        String outPath = Environment.getExternalStorageDirectory() + "/" + newPicFile;
-//        File outFile = new File(outPath);
-//
-//        Uri outuri = Uri.fromFile(outFile);
-//        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, outuri);
-
         // Create the File where the photo should go
         try {
-            photoFile = createImageFile();
+            photoFile = ImageUtil.createImageFile(currentPhotoPath);
         } catch (IOException ex) {
             // Error occurred while creating the File
 
@@ -121,7 +91,6 @@ public class DashboardFragment extends Fragment {
 
     void shareImage() {
         Intent intent = new Intent(Intent.ACTION_SEND);
-
         String title = "Sharing image ..";
         intent.putExtra(Intent.EXTRA_STREAM, photoURI);
         //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -137,56 +106,6 @@ public class DashboardFragment extends Fragment {
         }
     }
 
-    void saveImage() {
-
-        String imageFileName = "JPEG_";
-
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File imageTemp = null;
-
-        try {
-            imageTemp = File.createTempFile(
-                    imageFileName,  /* prefix */
-                    ".jpg",         /* suffix */
-                    path      /* directory */
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-//        File myDir=new File("/sdcard/saved_images");
-//        myDir.mkdirs();
-        Random generator = new Random();
-        int n = 10000;
-        n = generator.nextInt(n);
-//        String fname = "Image-"+ n +".jpg";
-//        File file = new File (myDir, fname);
-//        if (file.exists ()) file.delete ();
-        try {
-            FileOutputStream out = new FileOutputStream(imageTemp);
-
-            // NEWLY ADDED CODE STARTS HERE [
-            Canvas canvas = new Canvas(mutableBitmap);
-
-            Paint paint = new Paint();
-            paint.setColor(Color.WHITE); // Text Color
-            paint.setTextSize(72); // Text Size
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
-            // some more settings...
-
-            canvas.drawBitmap(mutableBitmap, 0, 0, paint);
-            canvas.drawText("Testing blah blah...", 100, 100, paint);
-            // NEWLY ADDED CODE ENDS HERE ]
-
-            mutableBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private ActivityResultLauncher<Intent> galleryActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -194,13 +113,8 @@ public class DashboardFragment extends Fragment {
                 public void onActivityResult(ActivityResult result) {
                     //here we will handle the result of our intent
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        //image picked
-                        //imageView.setImageURI(photoURI);
-
-                        bMap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-                        mutableBitmap = bMap.copy(Bitmap.Config.ARGB_8888, true);
-                        //saveImage();
-                        shareImage();
+                        mutableBitmap = ImageUtil.addTextToImage(photoFile);
+                        //shareImage();
                         imageView.setImageBitmap(mutableBitmap);
 
                     } else {

@@ -1,10 +1,6 @@
 package com.vicin.ui.notifications;
 
 import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,18 +11,13 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.vicin.databinding.FragmentNotificationsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
+import com.vicin.utils.LocationUtil;
 
 public class NotificationsFragment extends Fragment {
 
@@ -57,11 +48,11 @@ public class NotificationsFragment extends Fragment {
                             if (fineLocationGranted != null && fineLocationGranted) {
                                 // Precise location access granted.
                                 Log.i("###", "Precise location access granted.");
-                                getLocationCoords();
+                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity());
                             } else if (coarseLocationGranted != null && coarseLocationGranted) {
                                 // Only approximate location access granted.
                                 Log.i("###", "Only approximate location access granted.");
-                                getLocationCoords();
+                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity());
                             } else {
                                 // No location access granted.
                                 Log.i("###", "No location access granted.");
@@ -81,44 +72,5 @@ public class NotificationsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    void getLocationCoords() {
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.i("###", "No permissions by user....");
-            //return TODO;
-        }
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            // Logic to handle location object
-                            Log.i("### latitude", String.valueOf(location.getLatitude()));
-                            Log.i("### longitude", String.valueOf(location.getLongitude()));
-
-                            Geocoder gcd = new Geocoder(getActivity(), Locale.getDefault());
-                            List<Address> geoAddresses = null;
-                            try {
-                                geoAddresses = geoAddresses = gcd.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            if (geoAddresses.size() > 0) {
-                                String mUserLocation = "";
-                                mUserLocation = mUserLocation + geoAddresses.get(0).getAddressLine(0).replace(",", "") + ", ";
-                                Log.i("### mUserLocation", mUserLocation);
-                            }
-                        }
-                    }
-                });
     }
 }
