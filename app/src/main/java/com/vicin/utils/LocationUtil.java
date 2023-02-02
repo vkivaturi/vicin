@@ -12,13 +12,14 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.vicin.model.LocationData;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
 public class LocationUtil {
-    public static void getLocationCoords(FusedLocationProviderClient fusedLocationClient, FragmentActivity activity) {
+    public static void getLocationCoords(FusedLocationProviderClient fusedLocationClient, FragmentActivity activity, LocationData locationData) {
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -39,6 +40,8 @@ public class LocationUtil {
                             // Logic to handle location object
                             Log.i("### latitude", String.valueOf(location.getLatitude()));
                             Log.i("### longitude", String.valueOf(location.getLongitude()));
+                            locationData.setLatitude(String.valueOf(location.getLatitude()));
+                            locationData.setLongitude(String.valueOf(location.getLongitude()));
 
                             Geocoder gcd = new Geocoder(activity, Locale.getDefault());
                             List<Address> geoAddresses = null;
@@ -51,6 +54,7 @@ public class LocationUtil {
                                 String mUserLocation = "";
                                 mUserLocation = mUserLocation + geoAddresses.get(0).getAddressLine(0).replace(",", "") + ", ";
                                 Log.i("### mUserLocation", mUserLocation);
+                                locationData.setLocationLine1(mUserLocation);
                             }
                         }
                     }

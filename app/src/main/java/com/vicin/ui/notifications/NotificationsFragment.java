@@ -48,11 +48,11 @@ public class NotificationsFragment extends Fragment {
                             if (fineLocationGranted != null && fineLocationGranted) {
                                 // Precise location access granted.
                                 Log.i("###", "Precise location access granted.");
-                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity());
+                                //LocationUtil.getLocationCoords(fusedLocationClient, getActivity(), locationData);
                             } else if (coarseLocationGranted != null && coarseLocationGranted) {
                                 // Only approximate location access granted.
                                 Log.i("###", "Only approximate location access granted.");
-                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity());
+                                //LocationUtil.getLocationCoords(fusedLocationClient, getActivity(), locationData);
                             } else {
                                 // No location access granted.
                                 Log.i("###", "No location access granted.");

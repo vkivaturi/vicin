@@ -1,5 +1,6 @@
 package com.vicin.ui.dashboard;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -31,11 +32,16 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.vicin.MainActivity;
 import com.vicin.databinding.FragmentDashboardBinding;
+import com.vicin.model.LocationData;
 import com.vicin.utils.ImageUtil;
+import com.vicin.utils.LocationUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,13 +64,14 @@ public class DashboardFragment extends Fragment {
     Uri photoURI;
     Bitmap bMap = null;
     Bitmap mutableBitmap = null;
+    FusedLocationProviderClient fusedLocationClient;
+    LocationData locationData = new LocationData();
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         // Create the File where the photo should go
         try {
-            photoFile = ImageUtil.createImageFile(currentPhotoPath);
+            photoFile = ImageUtil.createImageFile();
         } catch (IOException ex) {
             // Error occurred while creating the File
 
@@ -113,7 +120,7 @@ public class DashboardFragment extends Fragment {
                 public void onActivityResult(ActivityResult result) {
                     //here we will handle the result of our intent
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        mutableBitmap = ImageUtil.addTextToImage(photoFile);
+                        mutableBitmap = ImageUtil.addTextToImage(photoFile, locationData);
                         //shareImage();
                         imageView.setImageBitmap(mutableBitmap);
 
@@ -125,17 +132,37 @@ public class DashboardFragment extends Fragment {
             }
     );
 
+        ActivityResultLauncher<String[]> locationPermissionRequest =
+                registerForActivityResult(new ActivityResultContracts
+                                .RequestMultiplePermissions(), result -> {
+                            Boolean fineLocationGranted = result.getOrDefault(
+                                    Manifest.permission.ACCESS_FINE_LOCATION, false);
+                            Boolean coarseLocationGranted = result.getOrDefault(
+                                    Manifest.permission.ACCESS_COARSE_LOCATION, false);
+                            if (fineLocationGranted != null && fineLocationGranted) {
+                                // Precise location access granted.
+                                Log.i("###", "Precise location access granted.");
+                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity(), locationData);
+                            } else if (coarseLocationGranted != null && coarseLocationGranted) {
+                                // Only approximate location access granted.
+                                Log.i("###", "Only approximate location access granted.");
+                                LocationUtil.getLocationCoords(fusedLocationClient, getActivity(), locationData);
+                            } else {
+                                // No location access granted.
+                                Log.i("###", "No location access granted.");
+                            }
+                        }
+                );
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         DashboardViewModel dashboardViewModel =
                 new ViewModelProvider(this).get(DashboardViewModel.class);
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
-        //final TextView textView = binding.textDashboard;
-        //dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         btnStartCamera = binding.btnStartCamera;
         imageView = binding.imageView;
@@ -144,6 +171,13 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Log.i("###", "inside button click");
+                //Set timestamp for location data
+                locationData.setTimeStamp(new SimpleDateFormat("dd-MMM-yyyy HH:mm a").format(new Date()));
+
+                locationPermissionRequest.launch(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                });
                 dispatchTakePictureIntent();
             }
         });
