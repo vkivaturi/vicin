@@ -65,7 +65,7 @@ public class DashboardFragment extends Fragment {
     Bitmap bMap = null;
     Bitmap mutableBitmap = null;
     FusedLocationProviderClient fusedLocationClient;
-    LocationData locationData = new LocationData();
+    LocationData locationData;
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -123,7 +123,7 @@ public class DashboardFragment extends Fragment {
                         mutableBitmap = ImageUtil.addTextToImage(photoFile, locationData);
                         //shareImage();
                         imageView.setImageBitmap(mutableBitmap);
-
+                        MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), mutableBitmap,"Imane_Name", "Image description");
                     } else {
                         //cancelled
                         //Toast.makeText(MainActivity.this, "Cancelled...", Toast.LENGTH_SHORT).show();
@@ -171,8 +171,8 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Log.i("###", "inside button click");
-                //Set timestamp for location data
-                locationData.setTimeStamp(new SimpleDateFormat("dd-MMM-yyyy HH:mm a").format(new Date()));
+                //Initialise location data object
+                locationData = new LocationData();
 
                 locationPermissionRequest.launch(new String[]{
                         Manifest.permission.ACCESS_FINE_LOCATION,

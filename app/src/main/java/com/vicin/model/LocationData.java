@@ -1,11 +1,24 @@
 package com.vicin.model;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class LocationData {
     private String latitude;
     private String longitude;
     private String locationLine1;
     private String landmark;
     private String timeStamp;
+
+    final private String NOT_AVAILABLE = "not available";
+    //Constructor that initalises values
+    public LocationData() {
+        setLongitude("Longitude " + NOT_AVAILABLE);
+        setLatitude("Latitude " + NOT_AVAILABLE);
+        setLandmark("Landmark " + NOT_AVAILABLE);
+        setLocationLine1("Location details " + NOT_AVAILABLE);
+        setTimeStamp(new SimpleDateFormat("dd-MMM-yyyy hh:mm a").format(new Date()));
+    }
 
     public String getLatitude() {
         return latitude;
